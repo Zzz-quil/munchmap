@@ -1,4 +1,4 @@
-# Munchmap
+# MunchMap
 
 A single-page Florida food-deals finder. `index.html` is the whole site (no build tooling, no dependencies).
 The deal data lives in `data/deals.json` and is baked into `index.html` by `python tools/build.py`.
