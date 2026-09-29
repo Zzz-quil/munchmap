@@ -120,7 +120,10 @@ select option{background-color:var(--card);color:var(--ink)}
 .cond{font-size:.88rem;color:var(--muted)}
 .tfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
 .src{font-size:.78rem;color:var(--muted);min-width:0}
+.src{display:flex;flex-wrap:wrap;gap:4px 14px}
 .src a{color:var(--muted)}
+.src a.near{color:var(--tomato);font-weight:600}
+.badge.check{background:transparent;border:1px dashed var(--line-strong)}
 .claim{white-space:nowrap;flex-shrink:0;border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:5px 14px;font-size:.84rem;font-weight:700;cursor:pointer;transition:background-color .15s ease,color .15s ease}
 .claim:hover{background:var(--ink);color:var(--paper)}
 .stamp{position:absolute;right:14px;top:50%;translate:0 -60%;rotate:-14deg;padding:4px 12px;border:3px double var(--tomato);border-radius:6px;color:var(--tomato);font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:.12em;text-transform:uppercase;pointer-events:none;mix-blend-mode:multiply;opacity:.9}
@@ -783,11 +786,22 @@ select option{background-color:var(--card);color:var(--ink)}
       if(d.days.length&&d.days.length<7){const hit=d.days.includes(day);badges.append(el("span","badge"+(hit?" on":""),hit?(todayish?"Today":day):dayText(d.days)))}
       if(d.hours&&d.hours.length){const on=atMin!=null&&openAt(d,atMin);badges.append(el("span","badge"+(on?" on":""),(on&&fTime==="now"?"On now, ":"")+d.hours.map(([a,b])=>clock(a)+"–"+clock(b)).join(", ")))}
       if(d.area&&d.area!=="Statewide")badges.append(el("span","badge",d.area));
+      const onlySome=/participat/i.test(d.c);
+      if(onlySome)badges.append(el("span","badge check","Participating locations"));
       if(d.kind)badges.append(el("span","badge",d.kind));
       if(d.until)badges.append(el("span","badge ends",endText(d.until)));
       body.append(badges);
       const f=el("div","tfoot");
       const src=el("span","src");
+      // Chains: the brand near the person's location. Local spots: that restaurant in its area.
+      const local=d.area&&d.area!=="Statewide";
+      const nl=ext(el("a","near",local?"Directions":onlySome?"Check nearby":"Find nearest"));
+      const addr=(d.c.match(/\d{2,5} [NSEW]?\.? ?[\w .']+? (?:St|Ave|Blvd|Rd|Dr|Hwy|Pkwy|Place|Way)\b/)||[""])[0];
+      const name=d.b.replace(/\s*\(.*?\)/,""),mine=where()&&areaFromLoc(where())===d.area;
+      nl.href=!local||(!addr&&mine)?mapUrl(name):"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(name+" "+(addr||d.area)+" FL");
+      nl.setAttribute("aria-label",(local?"Directions to ":"Find "+d.b+" locations near ")+(local?d.b:(where()||"you"))+(onlySome?", then confirm the location takes part":""));
+      if(onlySome&&!local)nl.title="Participating locations only: call ahead or check the "+d.b+" app for the store you pick";
+      src.append(nl);
       if(d.src){const sa=ext(el("a",null,"Verify"));sa.href=d.src;sa.title="Found in "+(d.srcName||"source");sa.setAttribute("aria-label","Verify the "+d.b+" deal at "+(d.srcName||"its source"));src.append(sa)}
       const label=d.b+", "+d.o;
       const btn=el("button","claim",has?"Undo":"Got it");btn.type="button";
