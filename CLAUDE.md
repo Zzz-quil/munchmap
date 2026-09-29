@@ -20,6 +20,7 @@ One JSON object per line in `data/deals.json`:
 | `area` | `Statewide` for chains, else one of `Miami-Dade` `Fort Lauderdale` `Palm Beach` `Orlando` `Tampa Bay` `Jacksonville` `Gainesville` `Tallahassee` `Sarasota` `Southwest Florida` `Panhandle` |
 | `kind` | `Apps & rewards` `Everyday value` `Weekly special` `Happy hour` `Kids eat free` `Sports win` `Restaurant week` `Grocery & stores` `Discounts & programs` `Student` `Limited time` |
 | `until` | last valid day `YYYY-MM-DD` for limited-time deals, else `""` |
+| `hours` | when the deal runs, as minute ranges from midnight: `[[900,1080]]` = 3–6pm, `[[1260,1440]]` = 9pm–close, `[]` = no set hours / all day. Leave the key out and `build.py` reads it from times written in `o`/`c` ("3–6pm", "after 5pm", "9pm–close", "open–7pm"); set it explicitly when the text is ambiguous. Powers the page's Time filter ("Right now", Lunch, Dinner…) |
 | `src` | URL where the deal was found |
 | `srcName` | publication + month, e.g. `"Hip2Save, Oct 2026"` |
 

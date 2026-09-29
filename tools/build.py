@@ -23,6 +23,49 @@ CATS = {"Burgers", "Chicken", "Mexican", "Sandwiches", "Pizza", "Coffee & sweets
 DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 KEEP_EXPIRED_DAYS = 7  # the page hides expired deals itself; prune them from the data a week later
 
+# Time windows ("3–6pm", "9pm–close", "after 5pm", "open–7pm", "until 10pm") read from a deal's text.
+# Stored as [[start_minute, end_minute], ...] with 1440 meaning close; [] means no set hours (all day).
+_T = r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)?"
+_RANGE = re.compile(_T + r"\s*(?:[–-]|to)\s*" + r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)", re.I)
+_TO_CLOSE = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*(?:[–-]|to)\s*close", re.I)
+_FROM_OPEN = re.compile(r"\bopen\s*(?:[–-]|to|until)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)", re.I)
+_AFTER = re.compile(r"\b(?:after|from)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)", re.I)
+_UNTIL = re.compile(r"\buntil\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)", re.I)
+
+
+def _mins(h, m, ap):
+    h = int(h) % 12 + (12 if ap.lower() == "pm" else 0)
+    return h * 60 + int(m or 0)
+
+
+def derive_hours(text):
+    if re.search(r"all day", text, re.I):   # all day on some days: don't hide it at other times
+        return []
+    wins, used = [], []
+    def add(s, e):
+        if e <= s and e != 1440:          # runs past midnight
+            wins.extend([[s, 1440], [0, e]])
+        else:
+            wins.append([s, e])
+    for m in _TO_CLOSE.finditer(text):
+        add(_mins(m[1], m[2], m[3]), 1440); used.append(m.span())
+    for m in _RANGE.finditer(text):
+        if any(a <= m.start() < b for a, b in used): continue
+        end = _mins(m[4], m[5], m[6])
+        start = _mins(m[1], m[2], m[3] or m[6])
+        if not m[3] and start >= end and m[6].lower() == "pm": start -= 720   # "11–4pm" means 11am
+        add(start, end); used.append(m.span())
+    for rx, kind in ((_FROM_OPEN, "open"), (_AFTER, "after"), (_UNTIL, "until")):
+        for m in rx.finditer(text):
+            if any(a <= m.start() < b for a, b in used): continue
+            t = _mins(m[1], m[2], m[3])
+            add(0, t) if kind != "after" else add(t, 1440)
+    out = []
+    for w in sorted(wins):
+        if out and w[0] <= out[-1][1]: out[-1][1] = max(out[-1][1], w[1])
+        else: out.append(w)
+    return out
+
 
 def validate(deals):
     problems, seen = [], set()
@@ -39,6 +82,9 @@ def validate(deals):
         if d.get("until") and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d["until"]):
             problems.append(f"{where}: until must be YYYY-MM-DD")
         if not str(d.get("src", "")).startswith("http"): problems.append(f"{where}: src must be a URL")
+        hrs = d.get("hours", [])
+        if not isinstance(hrs, list) or any(not (isinstance(w, list) and len(w) == 2 and 0 <= w[0] < w[1] <= 1440) for w in hrs):
+            problems.append(f"{where}: hours must be [[start_min, end_min], ...] with 0 <= start < end <= 1440")
         key = (d.get("b", "").lower(), d.get("o", "").lower(), d.get("area"))
         if key in seen: problems.append(f"{where}: duplicate of an earlier deal (same brand, offer, area)")
         seen.add(key)
@@ -57,6 +103,8 @@ def main():
     kept = [d for d in deals if not d.get("until") or d["until"] >= cutoff]
     for d in kept:
         d["days"] = [x for x in DAYS if x in d.get("days", [])]
+        if "hours" not in d:   # an explicit "hours" (even []) is kept as written
+            d["hours"] = derive_hours(d["o"] + " " + d["c"])
     DATA.write_text("[\n" + ",\n".join(json.dumps(d, ensure_ascii=False) for d in kept) + "\n]\n", encoding="utf-8")
 
     page = PAGE.read_text(encoding="utf-8")
