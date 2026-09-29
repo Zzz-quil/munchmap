@@ -75,6 +75,8 @@ select option{background-color:var(--card);color:var(--ink)}
 .finder input,.finder select{border:0;background:transparent;font-size:1.02rem;font-weight:600;padding:0;width:100%;min-width:0}
 .finder input::placeholder{color:var(--muted);font-weight:500;opacity:.8}
 .finder input:focus,.finder select:focus{outline:none}
+/* Browser autofill paints its own background; keep the pill's colors */
+.finder input:-webkit-autofill,.finder input:-webkit-autofill:hover,.finder input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 40px var(--card) inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink);transition:background-color 99999s}
 .finder:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--tomato) 30%,transparent),var(--shadow)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:0;background:var(--tomato);color:var(--tomato-ink);font-weight:700;padding:12px 22px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background-color .15s ease}
 .btn:hover{background:color-mix(in srgb,var(--tomato) 86%,var(--ink))}
@@ -876,7 +878,7 @@ select option{background-color:var(--card);color:var(--ink)}
     }finally{btn.disabled=false}
   });
 
-  $("finder").addEventListener("submit",e=>{e.preventDefault();store.set("loc",where());syncAreaFromLoc();renderNear();$("near").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+  $("finder").addEventListener("submit",e=>{e.preventDefault();document.activeElement&&document.activeElement.blur();store.set("loc",where());syncAreaFromLoc();renderNear();$("near").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
   dayEl.addEventListener("change",()=>{renderNear();renderToolbar();renderCoupons()});
   locEl.addEventListener("change",()=>{store.set("loc",where());syncAreaFromLoc();renderNear()});
 
