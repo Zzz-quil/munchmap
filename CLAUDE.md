@@ -1,6 +1,6 @@
 # MunchMap
 
-A single-page Florida food-deals finder. `index.html` is the whole site (no build tooling, no dependencies).
+A single-page Florida food-deals finder, live at https://munchmap-fl.vercel.app/ (Vercel, auto-deploys from main; the old GitHub Pages URL redirects there). `index.html` is the whole site (no build tooling, no dependencies).
 The deal data lives in `data/deals.json` and is baked into `index.html` by `python tools/build.py`.
 
 Never hand-edit the `<script id="dealData">` block in `index.html`; edit `data/deals.json` and rebuild.
