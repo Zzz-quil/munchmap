@@ -37,7 +37,7 @@ Goal: keep the deal book accurate and fresh for people in Florida looking for ch
    such as Miami New Times, Orlando Weekly, Tampa Bay Times, That's So Tampa, I Love the Burg, Jax Today, WOKV,
    Tallahassee Democrat, Gainesville Sun, Palm Beach Post, Sun Sentinel). Look for:
    - new chain app freebies, value menus and limited-time offers valid in Florida
-   - food holidays in the coming week (e.g. National Taco Day Oct 4, Halloween, Veterans Day) and their chain deals
+   - food holidays in the coming week (e.g. National Taco Day Tue Oct 6 2026, Halloween, Veterans Day) and their chain deals
    - this week's Publix / Winn-Dixie / Aldi ad highlights (replace last week's ad entries)
    - Florida sports-win freebies for teams in season (Jaguars, Dolphins, Bucs, Heat, Magic, Lightning, Panthers)
    - new kids-eat-free nights, happy hours, weekly specials and restaurant weeks in the Florida metros
@@ -49,6 +49,11 @@ Goal: keep the deal book accurate and fresh for people in Florida looking for ch
 4. Run `python tools/build.py`. It must print `built index.html`. Fix any validation problems it reports.
 5. Commit to `main` with a message like `Deals refresh 2026-10-05: +12 new, 4 updated, 9 expired` and push.
    If nothing changed, commit nothing.
+
+Effort bar: a refresh is a real research pass, not a skim. Run at least 25 web searches spread across every bullet in step 2
+and every Florida metro, open the most promising results, and aim for roughly 10+ additions or corrections. If a site is blocked
+by the network (e.g. hip2save.com), find the same deal on another source such as the chain's own site, a press release or local news.
+Before adding, check `data/deals.json` for the same brand + offer at "Statewide" as well as in the area, so you don't duplicate chain deals.
 
 Quality bar: every deal must be current (sourced from the last ~60 days, or a permanent program confirmed still active)
 and actually available in Florida. When unsure, leave it out.
