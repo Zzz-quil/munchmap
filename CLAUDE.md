@@ -24,6 +24,16 @@ One JSON object per line in `data/deals.json`:
 | `src` | URL where the deal was found |
 | `srcName` | publication + month, e.g. `"Hip2Save, Oct 2026"` |
 
+| `price` | cheapest out-of-pocket cost per person in dollars for **food** (free = `0`, "free with a $5 order" = `5`, "2 for $25" = `12.5`), or `null` when there's no fixed price ("50% off", BOGO, drink-only specials). Powers the Under $5/$10/$15 filter, which hides `null` deals |
+| `req` | what you must do, shown as chips: e.g. `"$5+ purchase"`, `"Rewards member"`, `"App or online"`, `"Dine-in only"`, `"With adult entrée"`, `"Bring ID"`, `"Participating locations"`, `"Code BOGO50"` |
+| `freq` | `"once"` for one-time offers (sign-up gifts, birthday rewards, single-use codes) or `"recurring"` (happy hours, weekly specials, everyday value). One-time cards stamp "Claimed" for good; recurring cards stamp "Used today" and reset the next day |
+| `addr` | street address for local spots (e.g. `"207 NE 1st St"`), `""` if unknown or a chain |
+| `geo` | `[lat, lng]` of a single local restaurant, `null` if looked up and not found / not one place. Filled by `python tools/geocode.py` |
+
+For `price`, `req`, `freq` and `addr`: leave the key out and `build.py` derives it from `o`/`c`, but check the result; set it
+explicitly when the text is ambiguous. If you edit a deal's text, update or remove these keys so they get re-derived.
+"Kids eat free" is only for a $0 kids meal; a priced kids meal ("$2.99 kids meals") is a Weekly special (the build rejects it otherwise).
+
 The page hides deals whose `until` has passed; `build.py` deletes them from the data a week later.
 `python tools/build.py --check` validates without writing.
 
@@ -46,7 +56,9 @@ Goal: keep the deal book accurate and fresh for people in Florida looking for ch
    - fix any existing deal your research shows has changed; remove ones confirmed discontinued
    - set `until` whenever a deal has an end date
    - do not add duplicates (same brand + offer + area)
-4. Run `python tools/build.py`. It must print `built index.html`. Fix any validation problems it reports.
+4. Run `python tools/build.py` (derives price/req/freq/addr/hours for new deals), then `python tools/geocode.py` to look up
+   coordinates for new local spots (needs network access to nominatim.openstreetmap.org; if it's blocked, say so in your summary),
+   then `python tools/build.py` again. It must print `built index.html`. Fix any validation problems it reports.
 5. Commit to `main` with a message like `Deals refresh 2026-10-05: +12 new, 4 updated, 9 expired` and push.
    If nothing changed, commit nothing.
 
